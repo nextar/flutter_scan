@@ -70,32 +70,36 @@ public class ScanDrawView extends SurfaceView implements SurfaceHolder.Callback 
 
     @Override
     public void surfaceChanged(SurfaceHolder surfaceHolder, int i, int width, int height) {
+        DisplayMetrics dm = new DisplayMetrics();                
         vw = width;
         vh = height;
-        areaWidth = min(vw, vh) * scale;
+        areaWidth = 1500;//min(vw, vh) * scale;
         areaX = (vw - areaWidth) / 2;
         areaY = (vh - areaWidth) / 2;
-
-        DisplayMetrics dm = new DisplayMetrics();
+        
         activity.getWindowManager().getDefaultDisplay().getMetrics(dm);
         dpi = dm.density;
-
+        Log.i(LOG_TAG, "height:"+height);        
+        Log.i(LOG_TAG, "width:"+width);       
+        Log.i(LOG_TAG, "areaWidth:"+areaWidth);        
+        Log.i(LOG_TAG, "areaX:"+areaX);  
+        Log.i(LOG_TAG, "areaY:"+areaY);  
+        Log.i(LOG_TAG, "dpi:"+dpi);  
         // init animate
-        final float scanLineWidth = (float) (areaWidth * 0.8);
-        final long duration = (long) (areaWidth/175/dpi*1.5*1000);
-        positionAnimator = ValueAnimator.ofFloat(0, scanLineWidth);
-        positionAnimator.setDuration(duration);
-        positionAnimator.setInterpolator(null);
-        positionAnimator.setRepeatMode(ValueAnimator.RESTART);
-        positionAnimator.setRepeatCount(ValueAnimator.INFINITE);
-        positionAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-            @Override
-            public void onAnimationUpdate(ValueAnimator valueAnimator) {
-                scanLinePositionValue = (float) valueAnimator.getAnimatedValue();
-//                Log.i(LOG_TAG, "scanLinePositionValue:"+scanLinePositionValue);
-                invalidate();
-            }
-        });
+        // final float scanLineWidth = (float) (areaWidth); //(areaWidth * 0.8);
+        // final long duration = (long) (areaWidth/175/dpi*1.5*1000);
+        // positionAnimator = ValueAnimator.ofFloat(1, scanLineWidth);
+        // positionAnimator.setDuration(duration);                
+        // positionAnimator.setRepeatMode(ValueAnimator.RESTART);        
+        // positionAnimator.setRepeatCount(ValueAnimator.INFINITE);
+        // positionAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+        //     @Override
+        //     public void onAnimationUpdate(ValueAnimator valueAnimator) {
+        //         scanLinePositionValue = (float) valueAnimator.getAnimatedValue();
+        //         //Log.i(LOG_TAG, "scanLinePositionValue:"+scanLinePositionValue);
+        //         invalidate();
+        //     }
+        // });
     }
 
     @Override

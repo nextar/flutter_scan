@@ -113,14 +113,14 @@ public class ScanView: UIView,AVCaptureMetadataOutputObjectsDelegate,FlutterPlug
   // 设置扫描区域
   private func setScanArea() {
     let scale:CGFloat = self.scale;
-    let areaWidth = min(self.vw, self.vh) * scale;
-    let x = (self.vw - areaWidth) / 2;
-    let y = (self.vh - areaWidth) / 2;
-    if let output = self.metadataOutput,let captureLayer = self.captureLayer {
-      let originRect = CGRect(x: x, y: y, width: areaWidth, height: areaWidth);
-      let rect = captureLayer.metadataOutputRectConverted(fromLayerRect: originRect);
-      output.rectOfInterest = rect;
-    }
+    let areaWidth = 1500; //min(self.vw, self.vh) * scale;
+    // let x = (self.vw - areaWidth) / 2;
+    // let y = (self.vh - areaWidth) / 2;
+    // if let output = self.metadataOutput,let captureLayer = self.captureLayer {
+    //   let originRect = CGRect(x: x, y: y, width: areaWidth, height: areaWidth);
+    //   let rect = captureLayer.metadataOutputRectConverted(fromLayerRect: originRect);
+    //   output.rectOfInterest = rect;
+    // }
   }
   
   @objc func sessionDidStart() {
@@ -228,27 +228,27 @@ public class ScanView: UIView,AVCaptureMetadataOutputObjectsDelegate,FlutterPlug
     scanShapeLayer.lineWidth = 2.0;
     
     // 扫描线动画
-    let animationGroup = CAAnimationGroup();
-    let scanPositionAnimation = CABasicAnimation();
-    scanPositionAnimation.keyPath = "transform.translation.y";
-    scanPositionAnimation.byValue = scanLineWidth;
-    scanPositionAnimation.duration = CFTimeInterval(areaWidth/175*1.5);
+    // let animationGroup = CAAnimationGroup();
+    // let scanPositionAnimation = CABasicAnimation();
+    // scanPositionAnimation.keyPath = "transform.translation.y";
+    // scanPositionAnimation.byValue = scanLineWidth;
+    // scanPositionAnimation.duration = CFTimeInterval(areaWidth/175*1.5);
     
-    let scanOpacityAnimation = CABasicAnimation();
-    scanOpacityAnimation.keyPath = "opacity";
-    scanOpacityAnimation.fromValue = 1;
-    scanOpacityAnimation.toValue = 0;
-    scanOpacityAnimation.duration = CFTimeInterval(areaWidth/175*0.5);
-    scanOpacityAnimation.beginTime = CFTimeInterval(areaWidth/175*1);
+    // let scanOpacityAnimation = CABasicAnimation();
+    // scanOpacityAnimation.keyPath = "opacity";
+    // scanOpacityAnimation.fromValue = 1;
+    // scanOpacityAnimation.toValue = 0;
+    // scanOpacityAnimation.duration = CFTimeInterval(areaWidth/175*0.5);
+    // scanOpacityAnimation.beginTime = CFTimeInterval(areaWidth/175*1);
     
-    animationGroup.animations = [scanPositionAnimation, scanOpacityAnimation];
-    animationGroup.repeatCount = MAXFLOAT;
-    animationGroup.duration = CFTimeInterval(areaWidth/175*1.5);
-    animationGroup.isRemovedOnCompletion = false;
-    scanShapeLayer.add(animationGroup, forKey: nil);
+    // animationGroup.animations = [scanPositionAnimation, scanOpacityAnimation];
+    // animationGroup.repeatCount = MAXFLOAT;
+    // animationGroup.duration = CFTimeInterval(areaWidth/175*1.5);
+    // animationGroup.isRemovedOnCompletion = false;
+    // scanShapeLayer.add(animationGroup, forKey: nil);
     
-    self.scanShapeLayer = scanShapeLayer;
-    self.layer.insertSublayer(scanShapeLayer, above: self.captureLayer);
+    // self.scanShapeLayer = scanShapeLayer;
+    // self.layer.insertSublayer(scanShapeLayer, above: self.captureLayer);
   }
   
   public override func layoutSubviews() {
