@@ -92,7 +92,7 @@ public class ScanView: UIView,AVCaptureMetadataOutputObjectsDelegate,FlutterPlug
       if self.session!.canAddOutput(metadataOutput) {
         self.session!.addOutput(metadataOutput);
         metadataOutput.setMetadataObjectsDelegate(self, queue: .main);
-        metadataOutput.metadataObjectTypes = [.aztec, .code128, .code39, .code39Mod43, .code93, .dataMatrix, .ean13, .ean8, .interleaved2of5, .itf14, .pdf417, .qr, .upca, .upce];
+        metadataOutput.metadataObjectTypes = [.aztec, .code128, .code39, .code39Mod43, .code93, .dataMatrix, .ean13, .ean8, .interleaved2of5, .itf14, .pdf417, .qr];
       } else {
           print("Could not add photo output to the session")
           return
@@ -284,6 +284,12 @@ public class ScanView: UIView,AVCaptureMetadataOutputObjectsDelegate,FlutterPlug
       guard let stringValue = readableObject.stringValue else { return }
       if #available(iOS 10.0, *) {
         UIImpactFeedbackGenerator(style: .medium).impactOccurred();
+      }
+       if readableObject.type == AVMetadataObject.ObjectType.ean13 {
+        if stringValue.hasPrefix("0") {
+          self.channel!.invokeMethod("onCaptured", arguments: String(stringValue.dropFirst()));
+          return
+        }
       }
       self.channel!.invokeMethod("onCaptured", arguments: stringValue);
     }
