@@ -37,7 +37,6 @@ public class ScanView: UIView,AVCaptureMetadataOutputObjectsDelegate,FlutterPlug
     self.session = AVCaptureSession();
     self.channel = FlutterMethodChannel(name: "chavesgu/scan/method_\(viewId)", binaryMessenger: registrar.messenger());
     registrar.addMethodCallDelegate(self, channel: self.channel!);
-//    registrar.addApplicationDelegate(self);
     
     let params = args as! NSDictionary;
     self.scale = params["scale"] as! CGFloat;
@@ -71,7 +70,6 @@ public class ScanView: UIView,AVCaptureMetadataOutputObjectsDelegate,FlutterPlug
   
   private func configSession() {
     do {
-//      self.session!.beginConfiguration();
       // add input
       var defaultVideoDevice: AVCaptureDevice?;
       if let cameraDevice =  AVCaptureDevice.default(for: .video)  {
@@ -100,11 +98,8 @@ public class ScanView: UIView,AVCaptureMetadataOutputObjectsDelegate,FlutterPlug
       
       self.session!.sessionPreset = AVCaptureSession.Preset.high;
       self.setScanArea();
-//      self.session!.commitConfiguration();
+
       self.session!.startRunning();
-//      self.queue!.async {
-//        self.session!.startRunning();
-//      }
     } catch {
       print("Couldn't create video device input: \(error)")
     }
@@ -113,14 +108,7 @@ public class ScanView: UIView,AVCaptureMetadataOutputObjectsDelegate,FlutterPlug
   // 设置扫描区域
   private func setScanArea() {
     let scale:CGFloat = self.scale;
-    let areaWidth = 1500; //min(self.vw, self.vh) * scale;
-    // let x = (self.vw - areaWidth) / 2;
-    // let y = (self.vh - areaWidth) / 2;
-    // if let output = self.metadataOutput,let captureLayer = self.captureLayer {
-    //   let originRect = CGRect(x: x, y: y, width: areaWidth, height: areaWidth);
-    //   let rect = captureLayer.metadataOutputRectConverted(fromLayerRect: originRect);
-    //   output.rectOfInterest = rect;
-    // }
+    let areaWidth = 1500;
   }
   
   @objc func sessionDidStart() {
@@ -195,7 +183,6 @@ public class ScanView: UIView,AVCaptureMetadataOutputObjectsDelegate,FlutterPlug
       path.move(to: CGPoint(x: x + areaWidth, y: y + areaWidth - joinWidth));
       path.addLine(to: CGPoint(x: x + areaWidth, y: y + areaWidth - shortWidth));
 
-      
       let shapeLayer = CAShapeLayer();
       shapeLayer.frame = self.bounds;
       shapeLayer.path = path.cgPath;
@@ -226,29 +213,6 @@ public class ScanView: UIView,AVCaptureMetadataOutputObjectsDelegate,FlutterPlug
     scanShapeLayer.path = scanPath.cgPath;
     scanShapeLayer.strokeColor = self.scanColor.withAlphaComponent(0.9).cgColor;
     scanShapeLayer.lineWidth = 2.0;
-    
-    // 扫描线动画
-    // let animationGroup = CAAnimationGroup();
-    // let scanPositionAnimation = CABasicAnimation();
-    // scanPositionAnimation.keyPath = "transform.translation.y";
-    // scanPositionAnimation.byValue = scanLineWidth;
-    // scanPositionAnimation.duration = CFTimeInterval(areaWidth/175*1.5);
-    
-    // let scanOpacityAnimation = CABasicAnimation();
-    // scanOpacityAnimation.keyPath = "opacity";
-    // scanOpacityAnimation.fromValue = 1;
-    // scanOpacityAnimation.toValue = 0;
-    // scanOpacityAnimation.duration = CFTimeInterval(areaWidth/175*0.5);
-    // scanOpacityAnimation.beginTime = CFTimeInterval(areaWidth/175*1);
-    
-    // animationGroup.animations = [scanPositionAnimation, scanOpacityAnimation];
-    // animationGroup.repeatCount = MAXFLOAT;
-    // animationGroup.duration = CFTimeInterval(areaWidth/175*1.5);
-    // animationGroup.isRemovedOnCompletion = false;
-    // scanShapeLayer.add(animationGroup, forKey: nil);
-    
-    // self.scanShapeLayer = scanShapeLayer;
-    // self.layer.insertSublayer(scanShapeLayer, above: self.captureLayer);
   }
   
   public override func layoutSubviews() {
