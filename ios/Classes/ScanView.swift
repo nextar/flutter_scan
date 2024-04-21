@@ -92,7 +92,7 @@ public class ScanView: UIView,AVCaptureMetadataOutputObjectsDelegate,FlutterPlug
       if self.session!.canAddOutput(metadataOutput) {
         self.session!.addOutput(metadataOutput);
         metadataOutput.setMetadataObjectsDelegate(self, queue: .main);
-        metadataOutput.metadataObjectTypes = [.aztec, .code128, .code39, .code39Mod43, .code93, .dataMatrix, .ean13, .ean8, .interleaved2of5, .itf14, .pdf417, .qr];
+        metadataOutput.metadataObjectTypes = [.aztec, .code128, .code39, .code39Mod43, .code93, .dataMatrix, .ean13, .ean8, .interleaved2of5, .itf14, .pdf417, .qr, .upca, .upce];
       } else {
           print("Could not add photo output to the session")
           return
