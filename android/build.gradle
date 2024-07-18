@@ -1,18 +1,31 @@
-plugins {
-    id 'com.android.library'
+group 'com.chavesgu.scan'
+version '1.0'
+
+buildscript {
+    repositories {
+        google()
+        mavenCentral()
+        maven {url 'https://developer.huawei.com/repo/'}
+    }
+
+    dependencies {
+        classpath 'com.android.tools.build:gradle:8.2.2'
+    }
 }
 
-group = 'com.chavesgu.scan'
-version = '1.0'
-
-repositories {
-    google()
-    jcenter()
-    maven { url 'https://developer.huawei.com/repo/' }
+rootProject.allprojects {
+    repositories {
+        google()
+        mavenCentral()
+        maven {url 'https://developer.huawei.com/repo/'}
+    }
 }
+
+apply plugin: 'com.android.library'
 
 android {
-    compileSdkVersion 29
+    compileSdkVersion 34
+    namespace 'com.chavesgu.scan'
 
     defaultConfig {
         minSdkVersion 19
