@@ -1,9 +1,9 @@
-group = 'com.chavesgu.scan'
-version = '1.0'
-
 plugins {
     id 'com.android.library'
 }
+
+group = 'com.chavesgu.scan'
+version = '1.0'
 
 repositories {
     google()
@@ -15,7 +15,7 @@ android {
     compileSdkVersion 29
 
     defaultConfig {
-        minSdkVersion 21
+        minSdkVersion 19
         consumerProguardFiles 'consumer-proguard-rules.pro'
     }
     lintOptions {
