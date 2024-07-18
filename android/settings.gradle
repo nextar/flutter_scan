@@ -16,5 +16,9 @@ dependencyResolutionManagement {
     }
 }
 
+plugins {
+    id "com.android.tools.build:gradle" version "8.3.1"
+}
+
 rootProject.name = 'scan'
 include ':app'
