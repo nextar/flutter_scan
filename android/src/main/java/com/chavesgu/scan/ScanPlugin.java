@@ -1,33 +1,33 @@
 package com.chavesgu.scan;
 
+import android.Manifest;
 import android.app.Activity;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.os.AsyncTask;
 import android.os.Build;
+import android.os.Handler;
+import android.os.Looper;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
 
-import com.google.zxing.BarcodeFormat;
+import androidx.annotation.NonNull;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+
 import com.google.zxing.BinaryBitmap;
 import com.google.zxing.DecodeHintType;
-import com.google.zxing.LuminanceSource;
 import com.google.zxing.MultiFormatReader;
 import com.google.zxing.NotFoundException;
 import com.google.zxing.RGBLuminanceSource;
-import com.google.zxing.common.GlobalHistogramBinarizer;
 import com.google.zxing.common.HybridBinarizer;
-import com.journeyapps.barcodescanner.CaptureActivity;
 
 import java.lang.ref.WeakReference;
-import java.util.ArrayList;
 import java.util.EnumMap;
-import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
-import androidx.annotation.NonNull;
-
-import io.flutter.Log;
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
 import io.flutter.embedding.engine.plugins.activity.ActivityAware;
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding;
@@ -35,110 +35,126 @@ import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
 import io.flutter.plugin.common.MethodChannel.Result;
-import io.flutter.plugin.common.PluginRegistry.Registrar;
 
-import static android.content.Context.VIBRATOR_SERVICE;
-
-/** ScanPlugin */
 public class ScanPlugin implements FlutterPlugin, MethodCallHandler, ActivityAware {
-  private MethodChannel channel;
-  private Activity activity;
-  private FlutterPluginBinding flutterPluginBinding;
-  private Result _result;
-  private QrCodeAsyncTask task;
 
-  @Override
-  public void onAttachedToEngine(@NonNull FlutterPluginBinding flutterPluginBinding) {
-    this.flutterPluginBinding = flutterPluginBinding;
-  }
+    private MethodChannel channel;
+    private Activity activity;
+    private FlutterPluginBinding flutterPluginBinding;
+    private Result _result;
+    private final ExecutorService executorService = Executors.newSingleThreadExecutor();
 
-  private void configChannel(ActivityPluginBinding binding) {
-    activity = binding.getActivity();
-    channel = new MethodChannel(flutterPluginBinding.getBinaryMessenger(), "chavesgu/scan");
-    channel.setMethodCallHandler(this);
-    flutterPluginBinding.getPlatformViewRegistry()
-            .registerViewFactory("chavesgu/scan_view", new ScanViewFactory(
-                    flutterPluginBinding.getBinaryMessenger(),
-                    flutterPluginBinding.getApplicationContext(),
-                    activity,
-                    binding
-            ));
-  }
-
-  @Override
-  public void onAttachedToActivity(@NonNull ActivityPluginBinding binding) {
-    configChannel(binding);
-  }
-
-  @Override
-  public void onReattachedToActivityForConfigChanges(@NonNull ActivityPluginBinding binding) {
-    configChannel(binding);
-  }
-
-  @Override
-  public void onDetachedFromActivityForConfigChanges() {
-  }
-  @Override
-  public void onDetachedFromEngine(@NonNull FlutterPluginBinding binding) {
-    this.flutterPluginBinding = null;
-  }
-
-  @Override
-  public void onDetachedFromActivity() {
-    activity = null;
-    channel.setMethodCallHandler(null);
-  }
-
-  @Override
-  public void onMethodCall(@NonNull MethodCall call, @NonNull Result result) {
-    _result = result;
-    if (call.method.equals("getPlatformVersion")) {
-      result.success("Android " + android.os.Build.VERSION.RELEASE);
-    } else if (call.method.equals("parse")) {
-      String path = (String) call.arguments;
-      task = new QrCodeAsyncTask(this, path);
-      task.execute(path);
-    } else {
-      result.notImplemented();
+    @Override
+    public void onAttachedToEngine(@NonNull FlutterPluginBinding flutterPluginBinding) {
+        this.flutterPluginBinding = flutterPluginBinding;
     }
-  }
 
-  /**
-   * AsyncTask 静态内部类，防止内存泄漏
-   */
-  static class QrCodeAsyncTask extends AsyncTask<String, Integer, String> {
-    private final WeakReference<ScanPlugin> mWeakReference;
-    private final String path;
-
-    public QrCodeAsyncTask(ScanPlugin plugin, String path) {
-      mWeakReference = new WeakReference<>(plugin);
-      this.path = path;
+    private void configChannel(ActivityPluginBinding binding) {
+        activity = binding.getActivity();
+        channel = new MethodChannel(flutterPluginBinding.getBinaryMessenger(), "chavesgu/scan");
+        channel.setMethodCallHandler(this);
     }
 
     @Override
-    protected String doInBackground(String... strings) {
-      // 解析二维码/条码
-      return QRCodeDecoder.decodeQRCode(mWeakReference.get().flutterPluginBinding.getApplicationContext(), path);
+    public void onAttachedToActivity(@NonNull ActivityPluginBinding binding) {
+        configChannel(binding);
     }
 
     @Override
-    protected void onPostExecute(String s) {
-      super.onPostExecute(s);
-      //识别出图片二维码/条码，内容为s
-      ScanPlugin plugin = (ScanPlugin) mWeakReference.get();
-      plugin._result.success(s);
-      plugin.task.cancel(true);
-      plugin.task = null;
-      if (s!=null) {
-        Vibrator myVib = (Vibrator) plugin.flutterPluginBinding.getApplicationContext().getSystemService(VIBRATOR_SERVICE);
-        if (myVib != null) {
-          if (Build.VERSION.SDK_INT >= 26) {
-            myVib.vibrate(VibrationEffect.createOneShot(50, VibrationEffect.DEFAULT_AMPLITUDE));
-          } else {
-            myVib.vibrate(50);
-          }
+    public void onReattachedToActivityForConfigChanges(@NonNull ActivityPluginBinding binding) {
+        configChannel(binding);
+    }
+
+    @Override
+    public void onDetachedFromActivityForConfigChanges() {
+        activity = null;
+    }
+
+    @Override
+    public void onDetachedFromEngine(@NonNull FlutterPluginBinding binding) {
+        flutterPluginBinding = null;
+        executorService.shutdown(); // Libera os recursos da thread
+    }
+
+    @Override
+    public void onDetachedFromActivity() {
+        activity = null;
+        channel.setMethodCallHandler(null);
+    }
+
+    @Override
+    public void onMethodCall(@NonNull MethodCall call, @NonNull Result result) {
+        _result = result;
+        if (call.method.equals("getPlatformVersion")) {
+            result.success("Android " + Build.VERSION.RELEASE);
+        } else if (call.method.equals("parse")) {
+            String path = call.argument("path");
+            if (path != null) {
+                if (hasPermission()) {
+                    decodeQrCode(path);
+                } else {
+                    requestPermission();
+                }
+            } else {
+                result.error("INVALID_ARGUMENT", "Path cannot be null", null);
+            }
+        } else {
+            result.notImplemented();
         }
-      }
     }
-  }
+
+    private boolean hasPermission() {
+        return ContextCompat.checkSelfPermission(activity, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
+    }
+
+    private void requestPermission() {
+        ActivityCompat.requestPermissions(activity, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, 1001);
+    }
+
+    private void decodeQrCode(String path) {
+        executorService.execute(() -> {
+            String result = QRCodeDecoder.decodeQRCode(flutterPluginBinding.getApplicationContext(), path);
+
+            new Handler(Looper.getMainLooper()).post(() -> {
+                if (_result != null) {
+                    if (result != null) {
+                        _result.success(result);
+                        vibrate();
+                    } else {
+                        _result.error("QR_CODE_NOT_FOUND", "Failed to decode QR code", null);
+                    }
+                    _result = null;
+                }
+            });
+        });
+    }
+
+    private void vibrate() {
+        Vibrator vibrator = (Vibrator) flutterPluginBinding.getApplicationContext().getSystemService(Activity.VIBRATOR_SERVICE);
+        if (vibrator != null) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                vibrator.vibrate(VibrationEffect.createOneShot(50, VibrationEffect.DEFAULT_AMPLITUDE));
+            } else {
+                vibrator.vibrate(50);
+            }
+        }
+    }
+
+    // Permissões de retorno
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        if (requestCode == 1001) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // Permissão concedida, continue o processo
+                if (_result != null) {
+                    decodeQrCode(_result.toString());
+                }
+            } else {
+                // Permissão negada
+                if (_result != null) {
+                    _result.error("PERMISSION_DENIED", "Storage permission denied", null);
+                    _result = null;
+                }
+            }
+        }
+    }
 }
