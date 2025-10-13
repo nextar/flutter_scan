@@ -85,7 +85,7 @@ class _ScanViewState extends State<ScanView> {
   }
 }
 
-typedef CaptureCallback(String data);
+typedef CaptureCallback = void Function(String data);
 
 class ScanArea {
   const ScanArea(this.width, this.height);
