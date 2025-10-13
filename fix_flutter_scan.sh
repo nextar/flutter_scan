@@ -7,8 +7,22 @@ echo "Correção do flutter_scan para API 35"
 echo "==================================="
 echo ""
 
-# Caminho base do plugin
-PLUGIN_PATH="/Users/richardrsa/.pub-cache/git/flutter_scan-48ffa6a53242b22de66fe6194a0488ceba5ebfef"
+# Detectar automaticamente o caminho do plugin
+PLUGIN_PATH=$(ls -d /Users/richardrsa/.pub-cache/git/flutter_scan-* 2>/dev/null | head -n 1)
+
+if [ -z "$PLUGIN_PATH" ]; then
+  echo "❌ Erro: Plugin flutter_scan não encontrado no cache!"
+  echo ""
+  echo "Execute primeiro:"
+  echo "  cd /Users/richardrsa/git/nex_mobile_app"
+  echo "  flutter pub get"
+  echo ""
+  echo "Depois rode este script novamente."
+  exit 1
+fi
+
+echo "📦 Plugin encontrado: $PLUGIN_PATH"
+echo ""
 
 # 1. Corrigir ScanPlugin.java - Substituir AsyncTask por executors
 echo "1. Corrigindo ScanPlugin.java..."
@@ -153,15 +167,23 @@ echo "   ✓ ScanPlugin.java corrigido"
 
 # 2. Corrigir ScanViewNew.java - Substituir vibrate(long) depreciado
 echo "2. Corrigindo ScanViewNew.java..."
-sed -i.bak '73s/.*/                        myVib.vibrate(50);/' "${PLUGIN_PATH}/android/src/main/java/com/chavesgu/scan/ScanViewNew.java"
-echo "   ✓ ScanViewNew.java corrigido"
+if [ -f "${PLUGIN_PATH}/android/src/main/java/com/chavesgu/scan/ScanViewNew.java" ]; then
+  sed -i.bak '73s/.*/                        myVib.vibrate(50);/' "${PLUGIN_PATH}/android/src/main/java/com/chavesgu/scan/ScanViewNew.java"
+  echo "   ✓ ScanViewNew.java corrigido"
+else
+  echo "   - ScanViewNew.java não encontrado (pode não existir nesta versão)"
+fi
 
 # 3. Adicionar namespace ao build.gradle
 echo "3. Adicionando namespace ao build.gradle..."
-sed -i.bak '/^android {$/a\
+if ! grep -q "namespace 'com.chavesgu.scan'" "${PLUGIN_PATH}/android/build.gradle"; then
+  sed -i.bak '/^android {$/a\
     namespace '\''com.chavesgu.scan'\''
 ' "${PLUGIN_PATH}/android/build.gradle"
-echo "   ✓ Namespace adicionado ao build.gradle"
+  echo "   ✓ Namespace adicionado ao build.gradle"
+else
+  echo "   - Namespace já existe no build.gradle"
+fi
 
 echo ""
 echo "==================================="

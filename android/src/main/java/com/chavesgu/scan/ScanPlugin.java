@@ -3,7 +3,6 @@ package com.chavesgu.scan;
 import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.os.AsyncTask;
 import android.os.Build;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
@@ -24,6 +23,8 @@ import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import androidx.annotation.NonNull;
 
@@ -45,11 +46,12 @@ public class ScanPlugin implements FlutterPlugin, MethodCallHandler, ActivityAwa
   private Activity activity;
   private FlutterPluginBinding flutterPluginBinding;
   private Result _result;
-  private QrCodeAsyncTask task;
+  private ExecutorService executorService;
 
   @Override
   public void onAttachedToEngine(@NonNull FlutterPluginBinding flutterPluginBinding) {
     this.flutterPluginBinding = flutterPluginBinding;
+    this.executorService = Executors.newSingleThreadExecutor();
   }
 
   private void configChannel(ActivityPluginBinding binding) {
@@ -78,8 +80,12 @@ public class ScanPlugin implements FlutterPlugin, MethodCallHandler, ActivityAwa
   @Override
   public void onDetachedFromActivityForConfigChanges() {
   }
+
   @Override
   public void onDetachedFromEngine(@NonNull FlutterPluginBinding binding) {
+    if (executorService != null && !executorService.isShutdown()) {
+      executorService.shutdown();
+    }
     this.flutterPluginBinding = null;
   }
 
@@ -96,49 +102,33 @@ public class ScanPlugin implements FlutterPlugin, MethodCallHandler, ActivityAwa
       result.success("Android " + android.os.Build.VERSION.RELEASE);
     } else if (call.method.equals("parse")) {
       String path = (String) call.arguments;
-      task = new QrCodeAsyncTask(this, path);
-      task.execute(path);
+      executeQRCodeDecoding(path);
     } else {
       result.notImplemented();
     }
   }
 
-  /**
-   * AsyncTask 静态内部类，防止内存泄漏
-   */
-  static class QrCodeAsyncTask extends AsyncTask<String, Integer, String> {
-    private final WeakReference<ScanPlugin> mWeakReference;
-    private final String path;
+  private void executeQRCodeDecoding(String path) {
+    executorService.execute(() -> {
+      String decodedResult = QRCodeDecoder.decodeQRCode(
+          flutterPluginBinding.getApplicationContext(),
+          path
+      );
 
-    public QrCodeAsyncTask(ScanPlugin plugin, String path) {
-      mWeakReference = new WeakReference<>(plugin);
-      this.path = path;
-    }
-
-    @Override
-    protected String doInBackground(String... strings) {
-      // 解析二维码/条码
-      return QRCodeDecoder.decodeQRCode(mWeakReference.get().flutterPluginBinding.getApplicationContext(), path);
-    }
-
-    @Override
-    protected void onPostExecute(String s) {
-      super.onPostExecute(s);
-      //识别出图片二维码/条码，内容为s
-      ScanPlugin plugin = (ScanPlugin) mWeakReference.get();
-      plugin._result.success(s);
-      plugin.task.cancel(true);
-      plugin.task = null;
-      if (s!=null) {
-        Vibrator myVib = (Vibrator) plugin.flutterPluginBinding.getApplicationContext().getSystemService(VIBRATOR_SERVICE);
-        if (myVib != null) {
-          if (Build.VERSION.SDK_INT >= 26) {
-            myVib.vibrate(VibrationEffect.createOneShot(50, VibrationEffect.DEFAULT_AMPLITUDE));
-          } else {
-            myVib.vibrate(50);
+      activity.runOnUiThread(() -> {
+        _result.success(decodedResult);
+        if (decodedResult != null) {
+          Vibrator myVib = (Vibrator) flutterPluginBinding.getApplicationContext()
+              .getSystemService(VIBRATOR_SERVICE);
+          if (myVib != null) {
+            if (Build.VERSION.SDK_INT >= 26) {
+              myVib.vibrate(VibrationEffect.createOneShot(50, VibrationEffect.DEFAULT_AMPLITUDE));
+            } else {
+              myVib.vibrate(50);
+            }
           }
         }
-      }
-    }
+      });
+    });
   }
 }
