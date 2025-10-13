@@ -156,6 +156,13 @@ echo "2. Corrigindo ScanViewNew.java..."
 sed -i.bak '73s/.*/                        myVib.vibrate(50);/' "${PLUGIN_PATH}/android/src/main/java/com/chavesgu/scan/ScanViewNew.java"
 echo "   ✓ ScanViewNew.java corrigido"
 
+# 3. Adicionar namespace ao build.gradle
+echo "3. Adicionando namespace ao build.gradle..."
+sed -i.bak '/^android {$/a\
+    namespace '\''com.chavesgu.scan'\''
+' "${PLUGIN_PATH}/android/build.gradle"
+echo "   ✓ Namespace adicionado ao build.gradle"
+
 echo ""
 echo "==================================="
 echo "Correções aplicadas com sucesso!"
@@ -170,3 +177,4 @@ echo ""
 echo "Arquivos modificados:"
 echo "- ScanPlugin.java (AsyncTask → ExecutorService)"
 echo "- ScanViewNew.java (vibrate depreciado corrigido)"
+echo "- build.gradle (namespace adicionado)"
